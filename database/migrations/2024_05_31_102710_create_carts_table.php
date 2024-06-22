@@ -8,17 +8,19 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     * Creates the carts table with a foreign key reference to the users table.
      */
     public function up(): void
     {
         $userTableName = config('laravel-cart.users.table', 'users');
-        $userForeignName = config('laravel-cart.users.foreign_id', 'user_id');
-        $table = config('laravel-cart.carts.table', 'carts');
+        $userForeignKey = config('laravel-cart.users.foreign_key', 'user_id'); // Updated to 'foreign_key'
+        $cartTableName = config('laravel-cart.carts.table', 'carts');
 
-        Schema::create($table, function (Blueprint $table) use ($userTableName, $userForeignName) {
+        Schema::create($cartTableName, function (Blueprint $table) use ($userTableName, $userForeignKey) {
             $table->id();
 
-            $table->foreignId($userForeignName)->constrained($userTableName)->cascadeOnDelete();
+            // Ensures foreign key references are correctly set up and cascade on delete.
+            $table->foreignId($userForeignKey)->constrained($userTableName)->cascadeOnDelete();
 
             $table->timestamps();
         });
@@ -26,11 +28,12 @@ return new class extends Migration
 
     /**
      * Reverse the migrations.
+     * Drops the carts table if it exists.
      */
     public function down(): void
     {
-        $table = config('laravel-cart.carts.table', 'carts');
+        $cartTableName = config('laravel-cart.carts.table', 'carts');
 
-        Schema::dropIfExists($table);
+        Schema::dropIfExists($cartTableName);
     }
 };

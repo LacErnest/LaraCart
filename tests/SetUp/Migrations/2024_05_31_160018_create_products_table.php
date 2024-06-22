@@ -7,20 +7,23 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Executes the migration to create the 'products' table.
+     * This method defines the schema of the 'products' table, including the necessary fields
+     * and constraints. It is automatically called when the migration is run.
      */
     public function up(): void
     {
         Schema::create('products', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->string('price')->default(0);
-            $table->timestamps();
+            $table->id(); // Primary key
+            $table->string('title'); // Title field
+            $table->string('price')->default(0); // Price field with a default value
+            $table->timestamps(); // Timestamps for created_at and updated_at
         });
     }
 
     /**
-     * Reverse the migrations.
+     * Reverts the migration by dropping the 'products' table.
+     * This method is automatically called when the migration is rolled back.
      */
     public function down(): void
     {

@@ -11,13 +11,13 @@ use function Pest\Laravel\assertDatabaseHas;
 use function PHPUnit\Framework\assertInstanceOf;
 
 /*
- * Use `RefreshDatabase` for delete migration data for each test.
+ * Utilize `RefreshDatabase` to ensure a clean state for each test by rolling back database migrations.
  */
 uses(RefreshDatabase::class);
 
 test('can store product in cart', function () {
-    $user = User::query()->create(['name' => 'Ernest', 'email' => 'ernestsamo16@gmail.comd']);
-    $product = Product::query()->create(['title' => 'Product 1']);
+    $user = User::factory()->create(['name' => 'Ernest', 'email' => 'ernest@example.com']);
+    $product = Product::factory()->create(['title' => 'Product 1']);
 
     $cart = Cart::query()->firstOrCreate(['user_id' => $user->id]);
     $cartItem = new CartItem([
@@ -28,10 +28,7 @@ test('can store product in cart', function () {
 
     $cart->items()->save($cartItem);
 
-    // Assertions
     assertInstanceOf($product::class, $cartItem->itemable()->first());
-
-    // DB Assertions
     assertDatabaseCount('carts', 1);
     assertDatabaseCount('cart_items', 1);
     assertDatabaseHas('cart_items', [
@@ -49,8 +46,8 @@ test('can store product in cart with custom table name from config', function ()
 
     Artisan::call('migrate:refresh');
 
-    $user = User::query()->create(['name' => 'Ernest', 'email' => 'ernestsamo16@gmail.comd']);
-    $product = Product::query()->create(['title' => 'Product 1']);
+    $user = User::factory()->create(['name' => 'Ernest', 'email' => 'ernest@example.com']);
+    $product = Product::factory()->create(['title' => 'Product 1']);
 
     $cart = Cart::query()->firstOrCreate(['user_id' => $user->id]);
 
@@ -62,10 +59,7 @@ test('can store product in cart with custom table name from config', function ()
 
     $cart->items()->save($cartItem);
 
-    // Assertions
     assertInstanceOf($product::class, $cartItem->itemable()->first());
-
-    // DB Assertions
     assertDatabaseCount('custom_carts', 1);
     assertDatabaseCount('custom_cart_items', 1);
     assertDatabaseHas('custom_cart_items', [
@@ -76,12 +70,11 @@ test('can store product in cart with custom table name from config', function ()
 });
 
 test('can store product in cart with firstOrCreateWithItems scope', function () {
-    $user = User::query()->create(['name' => 'Ernest', 'email' => 'ernestsamo16@gmail.comd']);
-    $product = Product::query()->create(['title' => 'Product 1']);
+    $user = User::factory()->create(['name' => 'Ernest', 'email' => 'ernest@example.com']);
+    $product = Product::factory()->create(['title' => 'Product 1']);
 
     $cart = Cart::query()->firstOrCreateWithStoreItems($product, 1, $user->id);
 
-    // DB Assertions
     assertDatabaseCount('carts', 1);
     assertDatabaseCount('cart_items', 1);
     assertDatabaseHas('cart_items', [
@@ -92,14 +85,13 @@ test('can store product in cart with firstOrCreateWithItems scope', function () 
 });
 
 test('can store product in cart with firstOrCreateWithItems scope when user sign-in', function () {
-    $user = User::query()->create(['name' => 'Ernest', 'email' => 'ernestsamo16@gmail.comd']);
-    $product = Product::query()->create(['title' => 'Product 1']);
+    $user = User::factory()->create(['name' => 'Ernest', 'email' => 'ernest@example.com']);
+    $product = Product::factory()->create(['title' => 'Product 1']);
 
     auth()->login($user);
 
     $cart = Cart::query()->firstOrCreateWithStoreItems($product, 1);
 
-    // DB Assertions
     assertDatabaseCount('carts', 1);
     assertDatabaseCount('cart_items', 1);
     assertDatabaseHas('cart_items', [
@@ -110,72 +102,53 @@ test('can store product in cart with firstOrCreateWithItems scope when user sign
 });
 
 test('can store multiple products in cart', function () {
-    $user = User::query()->create(['name' => 'Ernest', 'email' => 'ernestsamo16@gmail.comd']);
-    $product1 = Product::query()->create(['title' => 'Product 1']);
-    $product2 = Product::query()->create(['title' => 'Product 1']);
-    $product3 = Product::query()->create(['title' => 'Product 1']);
+    $user = User::factory()->create(['name' => 'Ernest', 'email' => 'ernest@example.com']);
+    $products = Product::factory()->count(3)->create(['title' => 'Product 1']);
 
-    $items = [
-        [
-            'itemable' => $product1,
-            'quantity' => 2,
-        ],
-        [
-            'itemable' => $product2,
-            'quantity' => 1,
-        ],
-        [
-            'itemable' => $product3,
-            'quantity' => 5,
-        ],
-    ];
+    $items = $products->map(function ($product) {
+        return [
+            'itemable' => $product,
+            'quantity' => random_int(1, 5),
+        ];
+    })->all();
 
     $cart = Cart::query()->firstOrCreate(['user_id' => $user->id]);
     $cart->storeItems($items);
 
-    // DB Assertions
     assertDatabaseCount('carts', 1);
     assertDatabaseCount('cart_items', 3);
     assertDatabaseHas('cart_items', [
-        'itemable_id' => $product1->id,
-        'itemable_type' => $product1::class,
-        'quantity' => 2,
+        'itemable_id' => $products->first()->id,
+        'itemable_type' => $products->first()::class,
+        'quantity' => $items[0]['quantity'],
     ]);
 });
 
 test('get correct price with calculated quantity', function () {
-    $user = User::query()->create(['name' => 'Ernest', 'email' => 'ernestsamo16@gmail.comd']);
-    $product1 = Product::query()->create(['title' => 'Product 1', 'price' => 15000]);
-    $product2 = Product::query()->create(['title' => 'Product 1', 'price' => 25000]);
-    $product3 = Product::query()->create(['title' => 'Product 1', 'price' => 35000]);
+    $user = User::factory()->create(['name' => 'Ernest', 'email' => 'ernest@example.com']);
+    $products = Product::factory()->count(3)->create([
+        ['title' => 'Product 1', 'price' => 15000],
+        ['title' => 'Product 2', 'price' => 25000],
+        ['title' => 'Product 3', 'price' => 35000],
+    ]);
 
-    $items = [
-        [
-            'itemable' => $product1,
-            'quantity' => 2,
-        ],
-        [
-            'itemable' => $product2,
-            'quantity' => 1,
-        ],
-        [
-            'itemable' => $product3,
-            'quantity' => 5,
-        ],
-    ];
+    $items = $products->map(function ($product, $index) {
+        return [
+            'itemable' => $product,
+            'quantity' => $index + 1,
+        ];
+    })->all();
 
     $cart = Cart::query()->firstOrCreate(['user_id' => $user->id]);
     $cart->storeItems($items);
 
-    // Assertions
     \PHPUnit\Framework\assertEquals(230000, $cart->calculatedPriceByQuantity());
 
-    // DB Assertions
     assertDatabaseCount('carts', 1);
     assertDatabaseCount('cart_items', 3);
     assertDatabaseHas('cart_items', [
-        'itemable_id' => $product1->id,
-        'itemable_type' => $product1::class,
-        'quantity' => 2,
+        'itemable_id' => $products->first()->id,
+        'itemable_type' => $products->first()::class,
+        'quantity' => $items[0]['quantity'],
     ]);
 });

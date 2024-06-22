@@ -7,32 +7,29 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Run the migrations to create the cart_items table.
      */
     public function up(): void
     {
-        $table = config('laravel-cart.cart_items.table', 'cart_items');
-        $cartForeignName = config('laravel-cart.carts.foreign_id', 'cart_id');
-        $cartTableName = config('laravel-cart.carts.table', 'carts');
+        $cartItemsTable = config('laravel-cart.cart_items.table', 'cart_items');
+        $cartForeignKey = config('laravel-cart.carts.foreign_key', 'cart_id');
+        $cartsTable = config('laravel-cart.carts.table', 'carts');
 
-        Schema::create($table, function (Blueprint $table) use ($cartForeignName, $cartTableName) {
+        Schema::create($cartItemsTable, function (Blueprint $table) use ($cartForeignKey, $cartsTable) {
             $table->id();
-
-            $table->foreignId($cartForeignName)->constrained($cartTableName)->cascadeOnDelete();
+            $table->foreignId($cartForeignKey)->constrained($cartsTable)->cascadeOnDelete();
             $table->morphs('itemable');
             $table->unsignedInteger('quantity');
-
             $table->timestamps();
         });
     }
 
     /**
-     * Reverse the migrations.
+     * Reverse the migrations to drop the cart_items table.
      */
     public function down(): void
     {
-        $table = config('laravel-cart.cart_items.table', 'cart_items');
-
-        Schema::dropIfExists($table);
+        $cartItemsTable = config('laravel-cart.cart_items.table', 'cart_items');
+        Schema::dropIfExists($cartItemsTable);
     }
 };

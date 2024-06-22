@@ -4,93 +4,91 @@ namespace LacErnest\LaravelCart\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Cart extends Model
 {
     /**
-     * Fillable columns.
+     * Attributes that are mass assignable.
      *
-     * @var string[]
+     * @var array<string>
      */
     protected $fillable = ['user_id'];
 
     /**
-     * The relations to eager load on every query.
+     * Relationships to automatically load with every query.
      *
-     * @var string[]
+     * @var array<string>
      */
     protected $with = ['items'];
 
     /**
-     * Create a new instance of the model.
+     * Specify the table associated with the model.
      */
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-
         $this->table = config('laravel-cart.carts.table', 'carts');
     }
 
-    // Relations
-
     /**
-     * Relation one-to-many, CartItem model.
+     * Define a one-to-many relationship with CartItem.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function items(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function items()
     {
         return $this->hasMany(CartItem::class);
     }
 
-    // Scopes
-
-    public function scopeFirstOrCreateWithStoreItems(
-        Builder $query,
-        Model $item,
-        int $quantity = 1,
-        int|null $userId = null
-    ): Builder {
-        if (is_null($userId)) {
-            $userId = auth()->id();
-        }
-
+    /**
+     * Scope a query to either find an existing cart or create a new one, then store items.
+     *
+     * @param Builder $query
+     * @param Model $item
+     * @param int $quantity
+     * @param int|null $userId
+     * @return Builder
+     */
+    public function scopeFirstOrCreateWithStoreItems(Builder $query, Model $item, int $quantity = 1, ?int $userId = null)
+    {
+        $userId = $userId ?? Auth::id();
         $cart = $query->firstOrCreate(['user_id' => $userId]);
-        $cartItem = new CartItem([
-            'itemable_id' => $item->id,
+        $cart->items()->create([
+            'itemable_id' => $item->getKey(),
             'itemable_type' => $item::class,
             'quantity' => $quantity,
         ]);
 
-        $cart->items()->save($cartItem);
-
         return $query;
     }
 
-    // Methods
-
     /**
-     * Calculate price by quantity of items.
+     * Calculate the total price based on the quantity of items in the cart.
+     *
+     * @return int
      */
-    public function calculatedPriceByQuantity(): int
+    public function calculatedPriceByQuantity()
     {
-        $totalPrice = 0;
-        foreach ($this->items()->get() as $item) {
-            $totalPrice += (int) $item->quantity * (int) $item->itemable->price;
-        }
-
-        return $totalPrice;
+        return $this->items->sum(function ($item) {
+            return $item->quantity * $item->itemable->price;
+        });
     }
 
     /**
-     * Store multiple items.
+     * Store multiple items in the cart.
+     *
+     * @param array $items
+     * @return Cart
      */
-    public function storeItems(array $items): Cart
+    public function storeItems(array $items)
     {
         foreach ($items as $item) {
-            $item['itemable_id'] = $item['itemable']->getKey();
-            $item['itemable_type'] = get_class($item['itemable']);
-            $item['quantity'] = (int) $item['quantity'];
-
-            $this->items()->create($item);
+            $this->items()->create([
+                'itemable_id' => $item['itemable']->getKey(),
+                'itemable_type' => get_class($item['itemable']),
+                'quantity' => (int) $item['quantity'],
+            ]);
         }
 
         return $this;

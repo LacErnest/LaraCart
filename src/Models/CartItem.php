@@ -3,38 +3,55 @@
 namespace LacErnest\LaravelCart\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * Represents an item within a shopping cart.
+ */
 class CartItem extends Model
 {
     /**
-     * Fillable columns.
+     * The attributes that are mass assignable.
      *
-     * @var string[]
+     * @var array<string>
      */
-    protected $fillable = ['cart_id', 'itemable_id', 'itemable_type', 'quantity'];
+    protected $fillable = [
+        'cart_id', 
+        'itemable_id', 
+        'itemable_type', 
+        'quantity'
+    ];
 
     /**
-     * Create a new instance of the model.
+     * Initializes a new instance of the CartItem model with the specified attributes.
+     * 
+     * @param array $attributes Initial attributes to set on the model.
      */
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
 
+        // Set the database table dynamically based on configuration.
         $this->table = config('laravel-cart.cart_items.table', 'cart_items');
     }
 
     /**
-     * Relation polymorphic, inverse one-to-one or many relationship.
+     * Defines a polymorphic relationship to the itemable model.
+     * 
+     * @return MorphTo
      */
-    public function itemable(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    public function itemable(): MorphTo
     {
         return $this->morphTo();
     }
 
     /**
-     * Relation one-to-many, Cart model.
+     * Defines an inverse one-to-many relationship with the Cart model.
+     * 
+     * @return BelongsTo
      */
-    public function cart(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function cart(): BelongsTo
     {
         return $this->belongsTo(Cart::class, 'cart_id');
     }

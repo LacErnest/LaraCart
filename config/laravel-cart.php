@@ -2,48 +2,29 @@
 
 return [
     /*
-     * Users
-     *
-     * This value is about the users table, foreign key and, ... .
+     * Configuration for user-related settings.
+     * Includes table name and key references for user entities.
      */
     'users' => [
-        /*
-         * The user table name.
-         */
-        'table' => 'users',
-
-        /*
-         * The user foreign key.
-         */
-        'foreign_id' => 'user_id',
+        'table' => 'users',  // Name of the table where user data is stored.
+        'foreign_key' => 'user_id',  // Column name that acts as a foreign key in related tables.
     ],
 
     /*
-     * Carts
-     *
-     * This value is about the cart table name, foreign key and, ... .
+     * Configuration for cart-related settings.
+     * Defines the storage and reference settings for carts.
      */
     'carts' => [
-        /*
-         * The cart table name.
-         */
-        'table' => 'carts',
-
-        /*
-         * The cart foreign key name.
-         */
-        'foreign_id' => 'cart_id',
+        'table' => 'carts',  // Table name for storing cart data.
+        'foreign_key' => 'cart_id',  // Foreign key column in related tables (e.g., cart_items).
     ],
 
     /*
-     * Cart Items
-     *
-     * This value is about the items of one cart.
+     * Settings specific to items within a cart.
+     * This includes table names and could be extended to include item constraints, types, etc.
      */
     'cart_items' => [
-        /*
-         * The cart items table name.
-         */
-        'table' => 'cart_items',
+        'table' => 'cart_items',  // Table for storing individual cart items.
+        // Consider adding more settings here, such as 'max_items_per_cart' or 'allowed_item_types'.
     ],
 ];
