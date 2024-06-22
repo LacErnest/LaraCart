@@ -1,9 +1,8 @@
 {
     "name": "lacernest/laravel-cart",
-    "description": "Laravel Card is designed to be highly customizable and flexible, making it easy to adapt to your specific use case.",
+    "description": "Laravel Cart is designed to be highly customizable and flexible, making it easy to adapt to your specific use case.",
     "keywords": [
         "lacernest",
-        "milwad",
         "laravel",
         "framework",
         "cart",
