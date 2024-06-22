@@ -138,17 +138,10 @@ $cart = Cart::query()->firstOrCreate(['user_id' => $user->id]);
 $cart->storeItems($items);
 ```
 
-<a name="contributors"></a>
-## Contributors
-
-Thanks to all the people who contributed. [Contributors](https://github.com/lacernest/laravel-cart/graphs/contributors).
-
-<a href="https://github.com/lacernest/laravel-cart/graphs/contributors"><img src="https://opencollective.com/laravel-cart/contributors.svg?width=890&button=false" /></a>
-
 <a name="security"></a>
 ## Security
 
-If you discover any security-related issues, please email `lacernest23@gmail.com` instead of using the issue tracker.
+If you discover any security-related issues, please email `ernestsamo16@gmail.com` instead of using the issue tracker.
 
 <a name="chanelog"></a>
 ## Changelog
